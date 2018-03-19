@@ -57,8 +57,8 @@ def myloss(y_true,y_pred):
 def kgacgm(imas,mod,next_words_categorical,vocab_size,dim,emb,l1,l2,imas_val,mod_val,next_words_categorical_val,embedding_matrix,sl_train,sl_val,max_caption_length):
 	"""Knowledge Guided Assisted (KGA) Caption Generation Model which takes input from image features, caption word sequences and Entity labels.
 	"""
-        writefile=open("./logs/"+"training.txt","w")
-        writefile1=open("./logs/"+"validation.txt","w")
+        writefile=open("./logs/"+"cm.training.txt","w")
+        writefile1=open("./logs/"+"cm.validation.txt","w")
 	
 	## Language Model ##
         embed = Embedding(vocab_size,emb,mask_zero=True,weights=[embedding_matrix],input_length=max_caption_length,trainable=True)
@@ -110,7 +110,7 @@ def kgacgm(imas,mod,next_words_categorical,vocab_size,dim,emb,l1,l2,imas_val,mod
 def loaddata(dim,emb,l1,l2,max_caption_length):
 	"""Load Training and Validation Data consituting Image Features, Caption Word Sequences and Entity Label Vectors
 	"""
-	## training size = 70,194 * 5 ##
+	## training size = 70,194 * 5 , MSCOCO 8 objects removed dataset##
 	imas_all = np.loadtxt('./seqstoretraindata/'+'rmeightmscoco.images.cocoattrib.train.txt', dtype="float")
         mod_all = np.loadtxt('./seqstoretraindata/'+'rmeightmscoco.captions.train.txt', dtype="int")
         next_words_categorical_all = np.loadtxt('./seqstoretraindata/'+'rmeightmscoco.labels.train.txt', dtype="int")
