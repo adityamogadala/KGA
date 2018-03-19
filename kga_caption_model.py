@@ -3,16 +3,14 @@ from __future__ import print_function
 import theano.sandbox.cuda
 theano.sandbox.cuda.use("gpu0")
 import numpy as np
-from keras.preprocessing import sequence
-from keras.models import Sequential, Model
-from keras.layers import Reshape, Dense, Dropout, Embedding, TimeDistributed, Merge, Flatten, Input, LSTM, RepeatVector,Masking
+from keras.models import Model
+from keras.layers import Dense, Embedding, TimeDistributed, Input, LSTM, RepeatVector
 from keras.layers.merge import Add, Concatenate
 from keras.layers.core import Permute, Activation
 from keras.callbacks import ModelCheckpoint,Callback,History,ReduceLROnPlateau
 from keras.engine.topology import Layer, InputSpec
 from keras import backend as K
 from keras import initializers,regularizers,constraints,optimizers
-import sys
 class SemanticAttLayer(Layer):
 	"""Class which creates Semantic Attention Layer.
 	"""
