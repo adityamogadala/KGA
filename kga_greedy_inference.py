@@ -14,10 +14,11 @@ from keras import backend as K
 from keras import initializers,optimizers,regularizers,constraints
 import re
 
-max_caption_length,dim,emb,l1,l2 = 25,471,256,512,512
-batch_size=1
-
+max_caption_length,dim,emb,l1,l2 = 25,471,256,512,512 # Set Initial Global Variables (caption length, image feature dimensions, word embedding dimensions, hidden layer dimensions)
+batch_size=1 ## Batch Size
 def getvocab():
+	"""Fetch Caption Vocabulary
+	"""
         unique=[]
         with open('./vocablist/vocabulary.txt') as f:
                 for line in f:
@@ -30,6 +31,8 @@ def getvocab():
             index_word[i] = word
         return word_index,vocab_size,index_word
 def getattributes():
+	"""Fetch Attributes for Transferring Features
+	"""
 	allatt = './vocablist/allimagettributes.txt'
 	origatt = './vocablist/origimageattributes.txt'
 	tran_word = './vocablist/transfer_words_coco1.txt'
@@ -53,6 +56,8 @@ def getattributes():
 	new_attributes = list(set(all_attributes)-set(orig_attributes))
 	return all_attributes,orig_attributes,new_attributes,transfer_vocab_words,transfer_classifier_words
 def getkblabels():
+	"""Get Top5 Knowledge Graph Labels
+	"""
 	testkb = './vocablist/test_kb_top5_labels.txt'
 	testkb_labels=[]
 	with open(testkb) as f:
@@ -67,18 +72,29 @@ testkblabels=getkblabels()
 embedding_matrix = np.load('./seqstoretraindata/'+'embedding_matrix.npy')
 ##################### Caption Model - Start  ####################################################
 class SemanticAttLayer(Layer):
+	"""Class which creates Semantic Attention Layer.
+	"""
     def __init__(self, W_regularizer=None, W_constraint=None, **kwargs):
+	"""Initialize Weight Matrix W with Glorot Uniform and 
+	   without Regularization and Constraints
+	"""
 	self.supports_masking = True
 	self.init = initializers.get('glorot_uniform')
 	super(SemanticAttLayer, self).__init__(** kwargs)
 
     def build(self, input_shape):
+	"""Setup Dimensions of Weight Matrix W without bias
+	"""
         self.W = self.add_weight((input_shape[1][-1],input_shape[0][-1]),initializer=self.init,name='{}_W'.format(self.name),trainable=True)
         self.bias=None
         super(SemanticAttLayer, self).build(input_shape) 
     def compute_mask(self, input, input_mask=None):
+	"""Mask is not passed to next layers
+	"""
         return None
     def call(self, x, mask=None):
+	"""Calculate Attention Weights between Entity Labels and Generated Word Vectors
+	"""
         inw = K.tanh(K.dot(x[1],self.W))
         inw1 = K.permute_dimensions(inw,(0,2,1))
         we = K.tanh(K.batch_dot(x[0],inw1))
@@ -88,11 +104,17 @@ class SemanticAttLayer(Layer):
 	weighted_input = K.batch_dot(a,x[1])
         return weighted_input
     def compute_output_shape(self, input_shape):
+	""" Returns the final Output from the Semantic Attention Weighted Entity Label Vectors
+	"""
         return (input_shape[0][0],input_shape[0][1],input_shape[1][-1])
 def myloss(y_true,y_pred):
+	"""Calculate Categorical Cross-Entropy Loss with Gradient Clipping
+	"""
         y_pred = K.clip(y_pred, 0.00001, 1.0)
         return K.sparse_categorical_crossentropy(y_true, y_pred)
 def captionmodel():
+	"""Knowledge Guided Assisted (KGA) Caption Generation Model which takes input from image features, caption word sequences and Entity labels.
+	"""
 	## LM ##
 	embed = Embedding(vocab_size,emb,mask_zero=True,weights=[embedding_matrix],input_length=max_caption_length,trainable=True)
         lm=Input(shape=(max_caption_length,))
@@ -119,6 +141,8 @@ def captionmodel():
 
 ##################### Modified Caption Model - Start ####################################################
 def modifiedcaptionmodel():
+	"""Modifies Caption Generation Model weights with seen words in captions with unseen visual object categories
+	"""
 	model=captionmodel()
 	closeword={}
 	reversecloseword={}
@@ -131,6 +155,8 @@ def modifiedcaptionmodel():
                 for line in f:
                         items=line.strip('\n').split('$')
 			reversecloseword[items[1]]=items[0]
+	#### Updated Caption Model - Start ################
+	### Transfer weights between seen words and visual object categories ##
 	t=copy.deepcopy(model.layers[8].get_weights())
 	t_lm=copy.deepcopy(model.layers[9].get_weights())
 	t_sa=copy.deepcopy(model.layers[10].get_weights())
@@ -157,6 +183,7 @@ def modifiedcaptionmodel():
 	model.layers[8].set_weights(t)
 	model.layers[9].set_weights(t_lm)
 	model.layers[10].set_weights(t_sa)
+	#### Updated Caption Model - End ################
 	optim = optimizers.Adam(clipnorm=1., clipvalue=0.5)
 	model.compile(loss=myloss, optimizer=optim)
 	return model,reversecloseword,closeword
