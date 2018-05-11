@@ -9,11 +9,11 @@ import os
 
 max_caption_length = 25
 def imagedata(dataset,type_feat):
-        data_1 = np.load('/data2/u1031879/kga/image_data/cocoattribval2014/vgg16/val_vgg16.npy')
+        data_1 = np.load('val_vgg16.npy')
         return data_1
 def getvocab():
 	unique=[]
-	with open('../vocabulary.txt') as f:
+	with open('./vocablist/vocabulary.txt') as f:
 		for line in f:
 			unique.append(line.strip('\n'))	
 	vocab_size = len(unique)
@@ -89,13 +89,7 @@ def main():
 	type_vgg = 'vgg16'
 	type_res = 'resnet50'
 	data_1=imagedata(dataset_coco,type_vgg)
-	#en_train="./raw_data/"+dataset_coco+'/train2014/'
-	#filelist=os.listdir(en_train)
 	fulltrainpath=['../raw_data/rmeightmscoco/val2014/val.en.5']
-	#for files in filelist:
-	#	fulltrainpath.append(en_train+files)
-	print(fulltrainpath)
-	#vecdb = "./shelvedbs/"+dataset_iaprtc+"/"+str(i)+"."+j+"."+dataset_iaprtc+".db"
 	textdata(fulltrainpath,data_1,dataset_coco,type_vgg,lang)
 if __name__=='__main__':
 	main()
