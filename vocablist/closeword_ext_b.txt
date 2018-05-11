@@ -1,0 +1,11 @@
+racket$court
+pizza$plate
+zebra$giraffe
+bottle$glass
+bus$truck
+suitcase$open
+microwave$stove
+couch$chair
+zebras$giraffes
+luggage$bag
+buses$trucks

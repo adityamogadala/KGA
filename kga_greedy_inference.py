@@ -1,6 +1,5 @@
 #from __future__ import print_function
 import numpy as np
-import shelve
 import theano.sandbox.cuda
 theano.sandbox.cuda.use("gpu0")
 import copy
